@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-APP_ID = "com.moveinsync.ets&hl=en_IN&pli=1"      # text after "id=" in the Play Store URL
+APP_ID = "com.moveinsync.ets"      # package id only: text after id= and before any &
 DAYS, COUNTRY, LANG = 365, "in", "en"
 MIN_VERSION_N = 50                    # ignore versions with fewer reviews (too noisy)
 DROP_ALERT = 0.3                      # alert if monthly avg falls by more than this
