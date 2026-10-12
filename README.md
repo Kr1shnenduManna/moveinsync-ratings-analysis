@@ -47,4 +47,4 @@ The script exits non-zero if the latest month's average drops ≥0.3 stars vs. p
 - 55% of reviews ≤3 words; short reviews often missed.
 - English only — Hindi/Hinglish under-represented.
 - Self-selection bias (only reviewers who write).
-- Average is of scraped reviews (3.84), not store cumulative rating **[STORE_RATING]**.
+- Average is of scraped reviews (3.84), not store cumulative rating **[4.6]**.
