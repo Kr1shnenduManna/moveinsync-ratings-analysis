@@ -8,4 +8,4 @@ To look for release effects I compared monthly averages with the app versions in
 
 Tools: Python for scraping, analysis and charts; NVIDIA Nemotron for drafting help; Claude for analysis review and script work; manual reading of reviews to refine themes and select quotes. I checked the figures in the recommendation against the generated report.
 
-Limitations: keyword tagging is approximate; only reviewers who write are captured; the 3.84 average is of scraped reviews, not the store's cumulative rating ([STORE_RATING]).
+Limitations: keyword tagging is approximate; only reviewers who write are captured; the 3.84 average is of scraped reviews, not the store's cumulative rating (4.6).
