@@ -40,15 +40,27 @@ def tag(text):
     return hits
 
 def collect():
+    import time
     from google_play_scraper import reviews, Sort
     cutoff = datetime.now() - timedelta(days=DAYS)
-    out, token = [], None
+    out, token, fails = [], None, 0
     while True:
-        batch, token = reviews(APP_ID, lang=LANG, country=COUNTRY, sort=Sort.NEWEST,
-                               count=200, continuation_token=token)
+        try:
+            batch, token = reviews(APP_ID, lang=LANG, country=COUNTRY, sort=Sort.NEWEST,
+                                   count=200, continuation_token=token)
+        except Exception as e:                      # blocked, rate-limited, or wrong app id
+            fails += 1
+            print(f"Scrape error ({fails}/3): {type(e).__name__}: {e}")
+            if fails >= 3: break
+            time.sleep(5 * fails); continue
         if not batch: break
         out += batch
         if batch[-1]["at"] < cutoff or token is None: break
+    print(f"Fetched {len(out)} reviews from the Play Store for APP_ID={APP_ID!r}")
+    if not out:
+        print("No reviews returned. Check: (1) APP_ID is exact, (2) internet/VPN, (3) try again later (rate limit), "
+              "(4) pip install -U google-play-scraper")
+        return pd.DataFrame()                       # caller decides what to do
     df = pd.DataFrame(out)
     df = df.rename(columns={"score": "rating", "content": "text", "at": "date",
                             "reviewCreatedVersion": "version", "thumbsUpCount": "thumbs"})
@@ -114,8 +126,9 @@ def report(df, monthly, dist, ver, themes, neg, reply, top3):
     if len(monthly) >= 3 and monthly["mean"].iloc[-2] < monthly["mean"].iloc[-3] - DROP_ALERT:
         alert = f"**ALERT: last full month fell by more than {DROP_ALERT} stars.**\n\n"
     q = neg[neg["text"].str.split().str.len() >= 12].sort_values("thumbs", ascending=False).head(8)
+    stale = "**NOTE: the scrape returned no reviews this run, so this report re-uses the previously saved reviews.csv.**\n\n" if STALE else ""
     md = f"""# Play Store ratings report ({datetime.now():%d %b %Y})
-{alert}Reviews analysed: {len(df)} (last {DAYS} days). Average of these reviews: {df['rating'].mean():.2f}. 1-2 star share: {100*len(neg)/len(df):.1f}%.
+{stale}{alert}Reviews analysed: {len(df)} (last {DAYS} days). Average of these reviews: {df['rating'].mean():.2f}. 1-2 star share: {100*len(neg)/len(df):.1f}%.
 Note: this is the average of scraped reviews, not Play Store's cumulative rating. Cite the store figure separately.
 
 ## Monthly trend
@@ -138,7 +151,21 @@ Note: this is the average of scraped reviews, not Play Store's cumulative rating
     open("report.md", "w", encoding="utf-8").write(md)
     print(md[:2500])
 
+STALE = False
+
 if __name__ == "__main__":
-    raw = pd.read_csv("reviews.csv") if "--from-csv" in sys.argv else collect()
+    if "--from-csv" in sys.argv:
+        raw = pd.read_csv("reviews.csv")
+    else:
+        if APP_ID.startswith("PASTE"):
+            sys.exit("Set APP_ID at the top of ratings_pipeline.py (text after 'id=' in the Play Store URL).")
+        raw = collect()
+        if raw.empty:
+            if os.path.exists("reviews.csv"):
+                print("::warning::Scrape returned no reviews (blocked, rate-limited or wrong APP_ID). Re-using saved reviews.csv.")
+                STALE = True
+                raw = pd.read_csv("reviews.csv")
+            else:
+                sys.exit("Scrape returned no reviews and there is no saved reviews.csv. Check APP_ID and network, or run locally.")
     data = prepare(raw)
     report(data, *analyze(data))

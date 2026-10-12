@@ -1,4 +1,6 @@
 # Play Store ratings report (12 Oct 2026)
+**NOTE: the scrape returned no reviews this run, so this report re-uses the previously saved reviews.csv.**
+
 Reviews analysed: 2847 (last 365 days). Average of these reviews: 3.84. 1-2 star share: 27.0%.
 Note: this is the average of scraped reviews, not Play Store's cumulative rating. Cite the store figure separately.
 
