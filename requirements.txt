@@ -2,3 +2,6 @@ google-play-scraper
 pandas
 matplotlib
 tabulate
+streamlit 
+pandas 
+altair
